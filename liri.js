@@ -1,23 +1,55 @@
 //define global variables and get everything i need for node.js
 
-//var keys = require("keys.js");//grab info from keys.js
+var keys = require("./keys.js");//grab info from keys.js
 var fs = require("fs");
 var spotify = require('spotify');
+var Twitter = require("twitter");
 var request = require("request");
+var robot = require("robotjs")
 var userMovie;
 var userSong;
 
 
+//grabs the twitter keys and assigns them to variables
+var consumerKey = keys.twitterKeys.consumer_key;
+var consumerSecret = keys.twitterKeys.consumer_secret;
+var tokenKey = keys.twitterKeys.access_token_key;
+var tokenSecret = keys.twitterKeys.access_token_secret;
+
+var client = new Twitter({
+  consumer_key: consumerKey,
+  consumer_secret: consumerSecret,
+  access_token_key: tokenKey,
+  access_token_secret: tokenSecret
+});
+
+
 //grabs user input
 
-var userRequest = process.argv[2];
-
 //calls a function based on user input
+//only after the enter key has been pressed
+if(robot.keyTap('enter')){
+	//calls the command function to see what to do
+	var userCommand = process.argv[2];
+	command(userCommand);
+}
 
+
+
+//start of functions
+
+//function that determines which command to use
+function command(userRequest, randomText){
 if (userRequest === "my-tweets"){
-	twitter();
+	social();
 }else if (userRequest === "spotify-this-song"){
-	userSong = process.argv[3];
+	//if statement used to see if the song is coming from user or random.txt
+	if(randomText === undefined){
+	userSong = process.argv[3]
+	}
+	else{
+	userSong = randomText;
+	}
 	music(userSong);
 }else if (userRequest === "movie-this"){
 	userMovie = process.argv;
@@ -26,12 +58,33 @@ if (userRequest === "my-tweets"){
 	doWhatItSays();
 }
 
+};
 
 
-//start of functions
+
 
 //twitter function that displays tweets
-function twitter(){
+function social(){
+
+	
+ 
+var params = {screen_name: 'jshtx'};
+client.get('statuses/user_timeline', params, function(error, tweets, response) {
+  if (!error) {
+  	//for loop to cycle through the last 20 tweets
+  	//it throws an error at 20 tweets for some reason, changed to 19
+  	for(var i = 0; i < 19; i++){
+  	console.log("");
+  	console.log("==============================================");
+  	console.log("")
+  	console.log(tweets[i].text);	
+    console.log("Tweet Created: " + tweets[i].created_at);
+    console.log("");
+    console.log("==============================================");
+    console.log("");
+	};
+  }
+});
 
 };
 
@@ -122,7 +175,10 @@ function movie(userMovie){
 function doWhatItSays(){
 	fs.readFile("random.txt", "utf8", function(err, data){
 
-		music(data);
+		var whatToDo = data.split(",")
+
+		command(whatToDo[0], whatToDo[1]);
+	
 
 	});
 
